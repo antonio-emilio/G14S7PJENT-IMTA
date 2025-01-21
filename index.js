@@ -64,6 +64,57 @@ const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
 sunLight.position.set(-2, 0.5, 1.5);
 scene.add(sunLight);
 
+// Adicionando satélites
+const satelliteGroup = new THREE.Group();
+scene.add(satelliteGroup);
+
+const satelliteGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+const satelliteMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 }); // Cinza
+
+const numSatellites = 5;
+const satelliteDistance = 1.5;
+
+const satellites = [];
+
+for (let i = 0; i < numSatellites; i++) {
+  const satellite = new THREE.Mesh(satelliteGeometry, satelliteMaterial);
+  const angle = (i / numSatellites) * Math.PI * 2;
+  satellite.position.set(
+    Math.cos(angle) * satelliteDistance,
+    Math.sin(angle) * satelliteDistance,
+    0
+  );
+  satelliteGroup.add(satellite);
+  satellites.push(satellite);
+}
+
+// Função para criar o sinal de comunicação
+function createSignal(start, end) {
+  const signalGeometry = new THREE.BufferGeometry();
+  const vertices = new Float32Array([
+    start.x, start.y, start.z,
+    end.x, end.y, end.z
+  ]);
+  signalGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+  const signalMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+  const signal = new THREE.Line(signalGeometry, signalMaterial);
+  scene.add(signal);
+  return signal;
+}
+
+let signals = [];
+let signalProgress = 0;
+const signalSpeed = 0.02;
+
+// Inicializar sinais de comunicação entre todos os pares de satélites
+for (let i = 0; i < satellites.length; i++) {
+  for (let j = i + 1; j < satellites.length; j++) {
+    const start = satellites[i].position.clone().applyMatrix4(satelliteGroup.matrixWorld);
+    const end = satellites[j].position.clone().applyMatrix4(satelliteGroup.matrixWorld);
+    signals.push(createSignal(start, end));
+  }
+}
+
 function animate() {
   requestAnimationFrame(animate);
 
@@ -72,6 +123,27 @@ function animate() {
   cloudsMesh.rotation.y += 0.0023;
   glowMesh.rotation.y += 0.002;
   stars.rotation.y -= 0.0002;
+
+  // Animar satélites
+  satelliteGroup.rotation.y += 0.01;
+
+  // Atualizar sinais de comunicação
+  signalProgress += signalSpeed;
+  if (signalProgress >= 1) {
+    signalProgress = 0;
+  }
+
+  signals.forEach((signal, index) => {
+    const start = satellites[Math.floor(index / (satellites.length - 1))].position.clone().applyMatrix4(satelliteGroup.matrixWorld);
+    const end = satellites[(index % (satellites.length - 1)) + 1].position.clone().applyMatrix4(satelliteGroup.matrixWorld);
+    const currentPos = start.clone().lerp(end, signalProgress);
+    const vertices = new Float32Array([
+      start.x, start.y, start.z,
+      currentPos.x, currentPos.y, currentPos.z
+    ]);
+    signal.geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+  });
+
   renderer.render(scene, camera);
 }
 
