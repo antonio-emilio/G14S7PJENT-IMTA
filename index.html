@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Simulateur d'Effet Doppler</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+      body {
+        font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             color: #333;
@@ -16,107 +16,94 @@
             justify-content: center;
             height: 100vh;
             overflow: hidden;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            position: relative;
-            z-index: 2;
-        }
-        header h1 {
-            color: white; /* Define a cor do título como branco */
-        }
-        header p {
-            color: white; /* Define a cor do título como branco */
-        }
-        .container {
+      }
+      .overlay-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        width: 80%;
+        max-width: 600px;
+        text-align: center;
+      }
+      header h1 {
+        margin-bottom: 10px;
+      }
+      .input-box {
+        margin-top: 20px;
+      }
+      .input-box label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+      .input-box input,
+      .input-box button {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      .input-box button {
+        background-color: #007BFF;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+      .input-box button:hover {
+        background-color: #0056b3;
+      }
+      .chart-container {
+            height: 200px; /* Ajuste a altura do gráfico */
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* center */
             display: flex;
-            gap: 20px;
-            align-items: center;
-            position: relative;
-            z-index: 2;
-        }
-        .input-box {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .result {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-        .chart-container {
-            width: 400px;
-            height: 300px;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        canvas {
-            width: 100%;
-            height: 100%;
-        }
-        #backgroundCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
+            justify-content: center;  
+          } 
     </style>
-</head>
-<body>
-    <header>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.161/build/three.module.js",
+          "jsm/": "https://cdn.jsdelivr.net/npm/three@0.161/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="overlay-container">
+      <header>
         <h1>Simulateur d'Effet Doppler</h1>
         <p>Explorez comment la vitesse affecte les fréquences observées !</p>
-    </header>
-    <div class="container">
-        <div class="input-box">
-            <label for="frequencia">Fréquence (Hz) :</label>
-            <input type="number" id="frequencia" placeholder="Entrez la fréquence en Hz" required>
+      </header>
+      <div class="input-box">
+        <label for="frequencia">Fréquence (Hz) :</label>
+        <input type="number" id="frequencia" placeholder="Entrez la fréquence en Hz" required>
 
-            <label for="velocidade">Vitesse (m/s) :</label>
-            <input type="number" id="velocidade" placeholder="Entrez la vitesse en m/s" required>
+        <label for="velocidade">Vitesse (m/s) :</label>
+        <input type="number" id="velocidade" placeholder="Entrez la vitesse en m/s" required>
 
-            <label for="distancia">Distance (m) :</label>
-            <input type="number" id="distancia" placeholder="Entrez la distance en mètres" required>
+        <label for="distancia">Distance (m) :</label>
+        <input type="number" id="distancia" placeholder="Entrez la distance en mètres" required>
 
-            <button id="calcular">Calculer le Décalage Doppler</button>
+        <button id="calcular">Calculer le Décalage Doppler</button>
 
-            <div id="resultado" class="result">Fréquence Observée : -- Hz</div>
-        </div>
-        <div class="chart-container">
-            <canvas id="dopplerChart"></canvas>
-        </div>
+        <div id="resultado" class="result">Fréquence Observée : -- Hz</div>
+      </div>
+      <div class="chart-container">
+        <canvas id="dopplerChart"></canvas>
+      </div>
     </div>
-    <canvas id="backgroundCanvas"></canvas>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -173,53 +160,14 @@
 
             // Mettre à jour le graphique avec de nouvelles données
             const time = Array.from({ length: 20 }, (_, i) => i); // Simuler le temps (0 à 19 secondes)
-            const frequencies = time.map(t => calcularDoppler(frequencia, velocidade + t * 10, distancia));
+            const frequencies = time.map(t => calcularDoppler(frequencia, vitesse + t * 10, distancia));
 
             dopplerChart.data.labels = time;
             dopplerChart.data.datasets[0].data = frequencies;
             dopplerChart.update();
         });
-
-        // Fond étoilé
-        const canvas = document.getElementById('backgroundCanvas');
-        const ctxBackground = canvas.getContext('2d');
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        const stars = Array.from({ length: 200 }, () => ({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            size: Math.random() * 2,
-            speed: Math.random() * 0.5 + 0.1,
-        }));
-
-        function animateStars() {
-            ctxBackground.fillStyle = 'black';
-            ctxBackground.fillRect(0, 0, canvas.width, canvas.height);
-
-            stars.forEach(star => {
-                ctxBackground.fillStyle = 'white';
-                ctxBackground.beginPath();
-                ctxBackground.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-                ctxBackground.fill();
-
-                star.y += star.speed;
-                if (star.y > canvas.height) {
-                    star.y = 0;
-                    star.x = Math.random() * canvas.width;
-                }
-            });
-
-            requestAnimationFrame(animateStars);
-        }
-
-        animateStars();
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
     </script>
-</body>
+
+    <script type="module" src="index.js"></script>
+  </body>
 </html>
