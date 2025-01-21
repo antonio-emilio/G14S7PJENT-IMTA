@@ -68,8 +68,11 @@ scene.add(sunLight);
 const satelliteGroup = new THREE.Group();
 scene.add(satelliteGroup);
 
-const satelliteGeometry = new THREE.SphereGeometry(0.05, 8, 8);
-const satelliteMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 }); // Cinza
+const satelliteBodyGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+const satelliteBodyMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.7, roughness: 0.4 }); // Cor metálica
+
+const solarPanelGeometry = new THREE.BoxGeometry(0.2, 0.05, 0.01);
+const solarPanelMaterial = new THREE.MeshBasicMaterial({ color: 0x00008B }); // Azul escuro
 
 const numSatellites = 5;
 const satelliteDistance = 1.5;
@@ -77,12 +80,42 @@ const satelliteDistance = 1.5;
 const satellites = [];
 
 for (let i = 0; i < numSatellites; i++) {
-  const satellite = new THREE.Mesh(satelliteGeometry, satelliteMaterial);
-  const angle = (i / numSatellites) * Math.PI * 2;
+  const satellite = new THREE.Group();
+
+  const body = new THREE.Mesh(satelliteBodyGeometry, satelliteBodyMaterial);
+  satellite.add(body);
+
+  const solarPanel1 = new THREE.Mesh(solarPanelGeometry, solarPanelMaterial);
+  solarPanel1.position.set(0.15, 0, 0);
+  satellite.add(solarPanel1);
+
+  const solarPanel2 = new THREE.Mesh(solarPanelGeometry, solarPanelMaterial);
+  solarPanel2.position.set(-0.15, 0, 0);
+  satellite.add(solarPanel2);
+
+  // Adicionar listras aos painéis solares
+  const stripeMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+  const stripeGeometry = new THREE.BufferGeometry();
+  const stripeVertices = new Float32Array([
+    -0.1, 0.025, 0.005, 0.1, 0.025, 0.005,
+    -0.1, -0.025, 0.005, 0.1, -0.025, 0.005,
+    -0.1, 0.015, 0.005, 0.1, 0.015, 0.005,
+    -0.1, -0.015, 0.005, 0.1, -0.015, 0.005,
+    -0.1, 0.005, 0.005, 0.1, 0.005, 0.005,
+    -0.1, -0.005, 0.005, 0.1, -0.005, 0.005,
+  ]);
+  stripeGeometry.setAttribute('position', new THREE.BufferAttribute(stripeVertices, 3));
+  const stripes = new THREE.LineSegments(stripeGeometry, stripeMaterial);
+  solarPanel1.add(stripes.clone());
+  solarPanel2.add(stripes.clone());
+
+  const angle = Math.random() * Math.PI * 2; // Ângulo aleatório
+  const inclination = (Math.random() - 0.5) * Math.PI; // Inclinação aleatória
+  satellite.userData = { angle, inclination }; // Armazena os ângulos para animação
   satellite.position.set(
-    Math.cos(angle) * satelliteDistance,
-    Math.sin(angle) * satelliteDistance,
-    0
+    Math.cos(angle) * Math.cos(inclination) * satelliteDistance,
+    Math.sin(angle) * Math.cos(inclination) * satelliteDistance,
+    Math.sin(inclination) * satelliteDistance
   );
   satelliteGroup.add(satellite);
   satellites.push(satellite);
@@ -125,7 +158,14 @@ function animate() {
   stars.rotation.y -= 0.0002;
 
   // Animar satélites
-  satelliteGroup.rotation.y += 0.01;
+  satellites.forEach(satellite => {
+    satellite.userData.angle += 0.01; // Incrementa o ângulo para animação
+    satellite.position.set(
+      Math.cos(satellite.userData.angle) * Math.cos(satellite.userData.inclination) * satelliteDistance,
+      Math.sin(satellite.userData.angle) * Math.cos(satellite.userData.inclination) * satelliteDistance,
+      Math.sin(satellite.userData.inclination) * satelliteDistance
+    );
+  });
 
   // Atualizar sinais de comunicação
   signalProgress += signalSpeed;

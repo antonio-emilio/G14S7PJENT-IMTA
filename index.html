@@ -160,7 +160,7 @@
 
             // Mettre à jour le graphique avec de nouvelles données
             const time = Array.from({ length: 20 }, (_, i) => i); // Simuler le temps (0 à 19 secondes)
-            const frequencies = time.map(t => calcularDoppler(frequencia, vitesse + t * 10, distancia));
+            const frequencies = time.map(t => calcularDoppler(frequencia, velocidade + t * 10, distancia));
 
             dopplerChart.data.labels = time;
             dopplerChart.data.datasets[0].data = frequencies;
