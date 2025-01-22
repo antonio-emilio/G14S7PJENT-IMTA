@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doppler Shift Spectrum Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #222;
+            color: white;
+        }
+        canvas {
+            max-width: 90%;
+            max-height: 80%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Doppler Shift Spectrum</h1>
+    <canvas id="spectrumChart"></canvas>
+
+    <script>
+        const ctx = document.getElementById('spectrumChart').getContext('2d');
+
+        // Initialize chart
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Time axis
+                datasets: [{
+                    label: 'Frequency (kHz)',
+                    data: [],
+                    borderColor: 'rgb(138, 43, 226)',
+                    borderWidth: 2,
+                    tension: 0.2,
+                }],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time (s)',
+                            color: 'white'
+                        },
+                        ticks: {
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Doppler Shift (kHz)',
+                            color: 'white'
+                        },
+                        min: -60,
+                        max: 60,
+                        ticks: {
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'white'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Generate Doppler shift data dynamically with varying amplitudes
+        function generateFrequencyData(time) {
+            const baseFrequency = Math.sin(2 * Math.PI * time * 0.002) * 20; // Slow oscillation
+            const variation = Math.sin(2 * Math.PI * time * 0.05) * 40; // Faster modulation
+            return baseFrequency + variation;
+        }
+
+        // Add data to the chart
+        function updateChart() {
+            const now = performance.now() / 1000; // Current time in seconds
+            chart.data.labels.push(now.toFixed(2)); // Add time to x-axis
+            chart.data.datasets[0].data.push(generateFrequencyData(now)); // Add frequency to y-axis
+
+            // Keep only the last 240 data points (2 minutes at 500ms intervals)
+            if (chart.data.labels.length > 240) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+
+            chart.update('none'); // No animation for smoother updates
+        }
+
+        // Update chart every 500ms
+        setInterval(updateChart, 500);
+
+        // Reload page after 2 minutes
+        setTimeout(() => {
+            location.reload();
+        }, 620000);
+    </script>
+</body>
+</html>
