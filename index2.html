@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doppler Effect Simulation</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #87CEEB;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="dopplerCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('dopplerCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Object and wave properties
+        let objectX = 100;
+        let objectY = canvas.height / 2;
+        const objectSpeed = 2;
+
+        let droneX = 100;
+        let droneY = canvas.height / 2 + 150;
+        const droneSpeed = 0.3;
+
+        const waves = [];
+        const waveSpeed = 3;
+        const waveInterval = 20;
+        let waveCounter = 0;
+
+        // Load the satellite and drone images
+        const satelliteImage = new Image();
+        satelliteImage.src = "https://upload.wikimedia.org/wikipedia/commons/c/c2/Transiting_Exoplanet_Survey_Satellite_artist_concept_%28transparent_background%29.png";
+
+        const droneImage = new Image();
+        droneImage.src = "https://www.pngall.com/wp-content/uploads/5/Predator-Military-Drone-PNG-Image.png";
+
+        function drawBackground() {
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawSatellite() {
+            if (satelliteImage.complete) {
+                ctx.drawImage(satelliteImage, objectX - 30, objectY - 30, 90, 60);
+            }
+        }
+
+        function drawDrone() {
+            if (droneImage.complete) {
+                ctx.drawImage(droneImage, droneX - 30, droneY - 30, 120, 60);
+            }
+        }
+
+        function drawWaves() {
+            for (let i = waves.length - 1; i >= 0; i--) {
+                const wave = waves[i];
+                wave.radius += waveSpeed;
+
+                // Draw wave
+                ctx.strokeStyle = `rgba(0, 0, 0, ${1 - wave.radius / 300})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.closePath();
+
+                // Remove wave if it's too large
+                if (wave.radius > 300) {
+                    waves.splice(i, 1);
+                }
+            }
+        }
+
+        function update() {
+            objectX += objectSpeed;
+            droneX += droneSpeed;
+
+            // Wrap satellite around screen
+            if (objectX - 30 > canvas.width) {
+                objectX = -30;
+            }
+
+            // Wrap drone around screen
+            if (droneX - 30 > canvas.width) {
+                droneX = -30;
+            }
+
+            // Generate new waves
+            waveCounter++;
+            if (waveCounter % waveInterval === 0) {
+                waves.push({ x: objectX, y: objectY, radius: 0 });
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawBackground();
+            drawWaves();
+            drawSatellite();
+            drawDrone();
+            update();
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            objectY = canvas.height / 2;
+            droneY = canvas.height / 2 + 150;
+        });
+    </script>
+</body>
+</html>
